@@ -15,7 +15,7 @@ p_layer_th = 0.12 # Thickness of print layer
 p_flipTop = False # should flip the top
 
 # Screws
-p_screw_holes = 2 #Screws on each side (1 or 2)
+p_num_screw_holes = 2 #Screws on each side (1 or 2)
 p_screwpostID = 1.5 #Inner Diameter of the screw post holes, should be roughly screw diameter not including threads
 p_boreDiameter = 4.5 #Diameter of the counterbore hole, if any
 p_boreDepth = 0.5 #Depth of the counterbore hole, if
@@ -28,11 +28,9 @@ p_countersinkAngle = 60.0 #Countersink angle (complete angle between opposite si
 # New params
 p_tolerance = 0.5 # Tolerance for pcb w / h
 p_ledge_h = pcb_y_to_slot + pcb_slot_h + 1.5 # top and bottom inner "ledge"
-p_tbar_space_height = p_strap_dia + 0.5 # space to cut in case for strap edge
 p_tbar_hole_r = 0.5 # Radius of t-bar pin
 p_under_pcb_depth = 8.0 # space for battery, etc.
 p_inset_depth = pcb_t # depth of inset for pcb
-p_flipFastener = True # should flip fastener (true for prod)
 p_pcb_wall_thickness = 0.0 # thickness of walls around pcb inset
 p_fastener_width = p_strap_width - p_tolerance # width of fasteners
 
@@ -44,13 +42,11 @@ p_screen_h = 38.0
 p_screen_w = 32.0
 p_screen_margin = 1.5
 
-top_th = p_screen_th + p_top_sheet_th
+# orginal parameter definitions
+p_thickness =  1.0 #Thickness of the box walls
 
 pcb_inset_width = pcb_w
 pcb_inset_height = pcb_h
-
-# orginal parameter definitions
-p_thickness =  1.0 #Thickness of the box walls
 
 p_outerWidth = pcb_inset_width + 2.0 * p_pcb_wall_thickness # Total outer width of box enclosure
 p_outerLength = pcb_inset_height + 2.0 * p_pcb_wall_thickness #Total outer length of box enclosure
@@ -59,6 +55,9 @@ p_outerHeight = p_under_pcb_depth + p_thickness + p_inset_depth #Total outer hei
 p_sideRadius = pcb_radius #Radius for the curves around the sides of the box
 p_topAndBottomRadius =  p_outerHeight * 0.7 #Radius for the curves on the top and bottom edges of the box
 p_topAndBottomRadiusInner =  p_outerHeight * 0.5
+
+# Calculated
+top_th = p_screen_th + p_top_sheet_th
 
 # ------------
 # Load Watchy model
@@ -110,39 +109,6 @@ box = (box
   .text("//GD", 5, -3.0 * p_layer_th, cut=True, kind='bold', font='Courier')
 )
 
-# Top strap hole
-tbar_hole_depth = 1.5
-strap_hole_y_offset = p_outerLength / 2.0 - p_strap_dia / 2.0
-tbar_top = (cq.Workplane("ZY")
-  .workplane(
-    origin=(0, strap_hole_y_offset, 0), 
-    offset=(-p_strap_width / 2.0))
-  .circle(p_tbar_space_height)
-  .extrude(p_strap_width)
-  .workplane(
-    origin=(0, p_outerLength / 2.0 - p_topAndBottomRadius + p_strap_dia / 2.0 - 0.4, p_strap_dia / 2.0), 
-    offset=(-p_strap_width / 2.0 - tbar_hole_depth))
-  .circle(p_tbar_hole_r)
-  .extrude(p_strap_width + tbar_hole_depth * 2.0)
-)
-
-# Bottom strap hole
-tbar_bottom = (cq.Workplane("ZY")
-  .workplane(
-    origin=(0, -strap_hole_y_offset, 0), 
-    offset=(-p_strap_width / 2.0))
-  .circle(p_tbar_space_height)
-  .extrude(p_strap_width)
-  .workplane(
-    origin=(0, -(p_outerLength / 2.0 - p_topAndBottomRadius + p_strap_dia / 2.0 - 0.4), p_strap_dia / 2.0), 
-    offset=(-p_strap_width / 2.0 - tbar_hole_depth))
-  .circle(p_tbar_hole_r)
-  .extrude(p_strap_width + tbar_hole_depth * 2.0)
-)
-#with_tbars = box.cut(tbar_top).cut(tbar_bottom)
-
-with_tbars = box
-
 # side cuts (buttons, etc)
 pcb_top = pcb_h / 2.0
 pcb_top_to_top_button = 7.5
@@ -192,7 +158,7 @@ holes_right = (cq.Workplane("YZ")
   .extrude(p_outerWidth / 2.0)
 )
 
-with_side_holes = with_tbars.cut(holes_left).cut(holes_right)
+with_side_holes = box.cut(holes_left).cut(holes_right)
 
 # pcb inset
 slot_post_dia = pcb_slot_h - 0.1
@@ -210,9 +176,9 @@ pcb_inset = (cq.Workplane("XY")
 with_inset = with_side_holes.cut(pcb_inset)
 
 # Top cover
-if p_screw_holes == 1:
+if p_num_screw_holes == 1:
   fastener_hole_points = [(0, p_outerHeight * 0.75 - 0.5)]
-elif p_screw_holes == 2:
+elif p_num_screw_holes == 2:
   fastener_hole_points = [
     (-p_fastener_width * 0.3, p_outerHeight * 0.75 - 0.5),
     (p_fastener_width * 0.3, p_outerHeight * 0.75 - 0.5)
@@ -295,15 +261,9 @@ top = (top.faces(">Z")
   #.cutBlind(-0.5, taper=60)
 )
 
-# Add "WATCHY" text
-#top = (top.faces(">Z")
-#  .workplane(origin=(0, -p_screen_h/2.0 + 2.5, 0))
-#  .text("WATCHY", 4, 0.3, cut=False, combine=True, kind='bold', font='Sans')
-#)
-
 debug(top)
 
-pole_holes = (cq.Workplane("XY")
+pole_sockets = (cq.Workplane("XY")
   .workplane(offset=p_outerHeight)
   .pushPoints(poleCenters)
   .rect(p_fastener_width + p_tolerance, pole_thickness + p_tolerance)
@@ -324,34 +284,30 @@ with_top_holes = (with_inset
   #.hole(p_screwpostID, p_outerLength)
   #.cboreHole(p_screwpostID, p_boreDiameter, p_boreDepth)
   .cskHole(p_screwpostID, p_countersinkDiameter, p_countersinkAngle)
-  .cut(pole_holes) 
+  .cut(pole_sockets) 
 )
 
-# Strap Arms
-arms_th = 2.5
-arms_width = p_strap_width + 2.0 * arms_th
-arms_dia = 5.0
-arms = (cq.Workplane("ZY")
+# Strap Lugs
+tbar_hole_depth = 1.5
+lugs_th = 2.5
+lugs_width = p_strap_width + 2.0 * lugs_th
+lugs_dia = 5.0
+lugs_length = p_outerHeight / 2.0 - 1.0
+lugs = (cq.Workplane("ZY")
   .workplane(
     origin=(0, -p_outerLength / 2.0, p_outerHeight - p_inset_depth), 
-    offset=arms_width / 2.0)
-  .line(-p_outerHeight / 2.0, -p_outerHeight / 2.0)
-  .tangentArcPoint((-arms_dia, arms_dia))
-  .line(p_outerHeight / 2.0, p_outerHeight / 2.0)
+    offset=lugs_width / 2.0)
+  .line(-lugs_length, -lugs_length)
+  .tangentArcPoint((-lugs_dia, lugs_dia))
+  .line(lugs_length, lugs_length)
   .close()
-  
-  #.moveTo(p_outerLength / 2.0, p_outerHeight - p_inset_depth)
-  #.line(p_outerHeight / 2.0, -p_outerHeight / 2.0)
-  #.tangentArcPoint((5.0, 5.0))
-  #.line(-p_outerHeight / 2.0, p_outerHeight / 2.0)
-  #.close()
-  .extrude(-arms_th)
+  .extrude(-lugs_th)
   .faces("<X")
   .edges()
-  .fillet(arms_th/2.0)
+  .fillet(lugs_th/2.0)
   .faces(">X")
   .workplane(
-    origin=(0, -p_outerLength / 2.0 - p_outerHeight * 0.25, p_outerHeight - p_inset_depth -p_outerHeight * 0.75), 
+    origin=(0, -p_outerLength / 2.0 - p_outerHeight * 0.25 + 0.5, p_outerHeight * 0.25 - p_inset_depth + 0.5), 
     offset=(-tbar_hole_depth))
   .circle(p_tbar_hole_r)
   .cutBlind(tbar_hole_depth) 
@@ -359,8 +315,8 @@ arms = (cq.Workplane("ZY")
   .mirror("ZY", union=True)
   .mirror("XZ", union=True)
 )
-#debug(arms)
-with_top_holes = with_top_holes.union(arms)
+#debug(lugs)
+with_top_holes = with_top_holes.union(lugs)
 
 if p_flipTop:
   top = (top
@@ -380,6 +336,6 @@ result = (with_top_holes
 
 #return the combined result
 show_object(result)
-cq.exporters.export(result, "watchy-layers-arms.stl")
-cq.exporters.export(top, "watchy-layers-arms-top-only.stl")
-cq.exporters.export(with_top_holes, "watchy-layers-arms-body-only.stl")
+cq.exporters.export(result, "watchy-layers-lugs.stl")
+cq.exporters.export(top, "watchy-layers-lugs-top.stl")
+cq.exporters.export(with_top_holes, "watchy-layers-lugs-body.stl")

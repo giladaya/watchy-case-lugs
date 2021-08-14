@@ -2,8 +2,7 @@
 Designed by Gilad Dayagi using [CadQuery](https://github.com/CadQuery/cadquery).
 
 Includes a case body and top cover.  
-Use two screws to attach the fastener to the body.  
-Designed for use with 24mm straps.
+Use two / four screws to attach the top cover to the body.  
 Adjust the parameters at the top for your needs. 
 
 ## Design goals
@@ -20,4 +19,4 @@ Adjust the parameters at the top for your needs.
 You may want to experiment with different orientations and support settings.
 
 See photos folder for more photos.
-![Photo1](photos/photo3.jpg)
+![Photo1](photos/photo1.jpg)
