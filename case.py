@@ -40,7 +40,7 @@ p_top_sheet_th = 0.6 # thickness of top "cover sheet" - should be as thin as pos
 p_screen_from_pcb_top = 4.0
 p_screen_h = 38.0
 p_screen_w = 32.0
-p_screen_margin = 1.5
+p_screen_margin = 2.5
 
 # orginal parameter definitions
 p_thickness =  1.0 #Thickness of the box walls
@@ -112,7 +112,7 @@ box = (box
 # side cuts (buttons, etc)
 pcb_top = pcb_h / 2.0
 pcb_top_to_top_button = 7.5
-top_button_to_usb = 7.5
+top_button_to_usb = 7.75
 usb_to_bottom_button = 6.5
 button_width  = 4.6
 button_height = 2.0
@@ -220,13 +220,13 @@ top = (top.faces("<Z")
 top_fillets = 0.75
 top = (top.faces(">Z")
   # inset
-  .workplane(origin=(0, pcb_inset_height/2.0 - p_screen_from_pcb_top - p_screen_h / 2.0, 0),offset=-p_top_sheet_th)
+  .workplane(origin=(0, pcb_inset_height/2.0 - p_screen_from_pcb_top - p_screen_h / 2.0, 0), offset=-p_top_sheet_th)
   .rect(p_screen_w + p_tolerance, p_screen_h)
   .cutBlind(-p_screen_th)
    # window
   .faces(">Z")
   .workplane(origin=(0, pcb_inset_height/2.0 - p_screen_from_pcb_top - p_screen_margin - screen_window_size / 2.0, 0), offset=0)
-  .rect(screen_window_size, screen_window_size + 2.0 * p_tolerance)
+  .rect(screen_window_size, screen_window_size)
   .cutBlind(-p_screen_th)
   .faces(cq.selectors.BoxSelector(
     (-p_screen_w/2.0, -p_screen_h/2.0, 0), 
