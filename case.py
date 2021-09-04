@@ -28,7 +28,7 @@ p_countersinkAngle = 60.0 #Countersink angle (complete angle between opposite si
 # New params
 p_tolerance = 0.5 # Tolerance for pcb w / h
 p_ledge_h = pcb_y_to_slot + pcb_slot_h + 1.5 # top and bottom inner "ledge"
-p_tbar_hole_r = 0.5 # Radius of t-bar pin
+p_tbar_hole_r = 0.6 # Radius of t-bar pin
 p_under_pcb_depth = 8.0 # space for battery, etc.
 p_inset_depth = pcb_t # depth of inset for pcb
 p_pcb_wall_thickness = 0.0 # thickness of walls around pcb inset
@@ -292,7 +292,7 @@ tbar_hole_depth = 1.5
 lugs_th = 2.5
 lugs_width = p_strap_width + 2.0 * lugs_th
 lugs_dia = 5.0
-lugs_length = p_outerHeight / 2.0 - 1.0
+lugs_length = p_outerHeight / 2.0 - 2.5
 lugs = (cq.Workplane("ZY")
   .workplane(
     origin=(0, -p_outerLength / 2.0, p_outerHeight - p_inset_depth), 
@@ -305,9 +305,10 @@ lugs = (cq.Workplane("ZY")
   .faces("<X")
   .edges()
   .fillet(lugs_th/2.0)
+  # tbar holes
   .faces(">X")
   .workplane(
-    origin=(0, -p_outerLength / 2.0 - p_outerHeight * 0.25 + 0.5, p_outerHeight * 0.25 - p_inset_depth + 0.5), 
+    origin=(0, -p_outerLength / 2.0 - p_outerHeight * 0.25 + 1.25, p_outerHeight * 0.25 - p_inset_depth + 2.0), 
     offset=(-tbar_hole_depth))
   .circle(p_tbar_hole_r)
   .cutBlind(tbar_hole_depth) 
