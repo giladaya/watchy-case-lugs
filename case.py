@@ -9,7 +9,7 @@ show_watchy = False
 # ------------
 # Main params
 # ------------
-p_strap_width = 22 + 0.5 # strap width inc. tolerance
+p_strap_width = 22 # strap width inc. tolerance
 p_strap_dia = 4.0 # diameter of strap edge
 p_layer_th = 0.12 # Thickness of print layer
 p_flipTop = True # should flip the top
@@ -32,7 +32,7 @@ p_tbar_hole_r = 0.6 # Radius of t-bar pin
 p_under_pcb_depth = 8.0 # space for battery, etc.
 p_inset_depth = pcb_t # depth of inset for pcb
 p_pcb_wall_thickness = 0.0 # thickness of walls around pcb inset
-p_fastener_width = p_strap_width - p_tolerance # width of fasteners
+p_fastener_width = p_strap_width # width of fasteners
 
 # Cover params
 p_screen_th = 1.2 # thickness of screen (including adhesive tape)
@@ -292,7 +292,7 @@ with_top_holes = (with_inset
 # Strap Lugs
 tbar_hole_depth = 1.5
 lugs_th = 2.5
-lugs_width = p_strap_width + 2.0 * lugs_th
+lugs_width = p_strap_width + p_tolerance + 2.0 * lugs_th
 lugs_dia = 5.0
 lugs_length = p_outerHeight / 2.0 - 2.5
 lugs = (cq.Workplane("ZY")
@@ -314,7 +314,6 @@ lugs = (cq.Workplane("ZY")
     offset=(-tbar_hole_depth))
   .circle(p_tbar_hole_r)
   .cutBlind(tbar_hole_depth) 
-  #.extrude(p_strap_width + tbar_hole_depth * 2.0)
   .mirror("ZY", union=True)
   .mirror("XZ", union=True)
 )
@@ -339,6 +338,6 @@ result = (with_top_holes
 
 #return the combined result
 show_object(result)
-cq.exporters.export(result, "watchy-lugs.stl")
-cq.exporters.export(top, "watchy-lugs-top.stl")
-cq.exporters.export(with_top_holes, "watchy-lugs-body.stl")
+cq.exporters.export(result, f'watchy-lugs_{p_strap_width}.stl')
+cq.exporters.export(top, f'watchy-lugs-top_{p_strap_width}.stl')
+cq.exporters.export(with_top_holes, f'watchy-lugs-body_{p_strap_width}.stl')
