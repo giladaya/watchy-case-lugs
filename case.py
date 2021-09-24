@@ -12,7 +12,7 @@ show_watchy = False
 p_strap_width = 22 + 0.5 # strap width inc. tolerance
 p_strap_dia = 4.0 # diameter of strap edge
 p_layer_th = 0.12 # Thickness of print layer
-p_flipTop = False # should flip the top
+p_flipTop = True # should flip the top
 
 # Screws
 p_num_screw_holes = 2 #Screws on each side (1 or 2)
@@ -38,9 +38,11 @@ p_fastener_width = p_strap_width - p_tolerance # width of fasteners
 p_screen_th = 1.2 # thickness of screen (including adhesive tape)
 p_top_sheet_th = 0.6 # thickness of top "cover sheet" - should be as thin as possible
 p_screen_from_pcb_top = 4.0
-p_screen_h = 38.0
-p_screen_w = 32.0
-p_screen_margin = 2.5
+p_screen_h = 38.0 # height of screen module
+p_screen_w = 32.0 # width of screen module
+p_screen_margin = 1.6 # margin of actual screen from module edge
+p_screen_window_size = p_screen_w - 2.0 * p_screen_margin
+p_window_cy = 3.05 # y center of screen window, relative to workspace origin
 
 # orginal parameter definitions
 p_thickness =  1.0 #Thickness of the box walls
@@ -54,7 +56,7 @@ p_outerHeight = p_under_pcb_depth + p_thickness + p_inset_depth #Total outer hei
 
 p_sideRadius = pcb_radius #Radius for the curves around the sides of the box
 p_topAndBottomRadius =  p_outerHeight * 0.7 #Radius for the curves on the top and bottom edges of the box
-p_topAndBottomRadiusInner =  p_outerHeight * 0.5
+p_topAndBottomRadiusInner = p_outerHeight * 0.5
 
 # Calculated
 top_th = p_screen_th + p_top_sheet_th
@@ -186,8 +188,6 @@ elif p_num_screw_holes == 2:
 else:
   raise ValueError("screw_holes must be either 1 or 2.")
 
-screen_window_size = p_screen_w - 2.0 * p_screen_margin
-
 # basic shape
 top = (cq.Workplane("XY")
   .workplane(offset=p_outerHeight)
@@ -201,7 +201,7 @@ poleCenters = [
   (0, pcb_h / 2.0 - pcb_y_to_slot - pcb_slot_h / 2.0), 
   (0, -(pcb_h / 2.0 - pcb_y_to_slot - pcb_slot_h / 2.0))
 ]
-pole_thickness = pcb_slot_h - 0.5
+pole_thickness = pcb_slot_h - 0.6
 pole_hole_depth = p_outerHeight / 2.0 + 0.5
 
 top = (top.faces("<Z")
@@ -209,12 +209,15 @@ top = (top.faces("<Z")
   .pushPoints(poleCenters)
   .rect(p_fastener_width, pole_thickness)
   .extrude(pole_hole_depth)
+  .faces("<Z")
+  .edges("|Y")
+  .fillet(pole_thickness)
   .faces(">Y")
   .workplane(origin=(0, 0, 0), offset=0.0)
   .pushPoints( fastener_hole_points )
   # make the hole in the cover wider than the screw
   # so the top won't deform 
-  .hole(p_screwpostID + 0.4, p_outerLength)
+  .hole(p_screwpostID + 0.7, p_outerLength)
 )
 # screen holes
 top_fillets = 0.75
@@ -225,8 +228,8 @@ top = (top.faces(">Z")
   .cutBlind(-p_screen_th)
    # window
   .faces(">Z")
-  .workplane(origin=(0, pcb_inset_height/2.0 - p_screen_from_pcb_top - p_screen_margin - screen_window_size / 2.0, 0), offset=0)
-  .rect(screen_window_size, screen_window_size)
+  .workplane(origin=(0, p_window_cy, 0), offset=0)
+  .rect(p_screen_window_size, p_screen_window_size)
   .cutBlind(-p_screen_th)
   .faces(cq.selectors.BoxSelector(
     (-p_screen_w/2.0, -p_screen_h/2.0, 0), 
@@ -250,16 +253,15 @@ top = (top.faces(">Z")
 )
 
 # decorations
-top = (top.faces(">Z")
-  .workplane(origin=(0, 0, 0), offset=0)
-  .pushPoints( [ 
-    (0, -pcb_inset_height/2.0 + 3.0, 0),
-    (0, pcb_inset_height/2.0 - 3.0, 0)
-  ])
-  .rect(p_strap_width ,3.0)
-  .extrude(4.0 * p_layer_th, taper=60)
-  #.cutBlind(-0.5, taper=60)
-)
+# top = (top.faces(">Z")
+#   .workplane(origin=(0, 0, 0), offset=0)
+#   .pushPoints( [ 
+#     (0, -pcb_inset_height/2.0 + 3.0, 0),
+#     (0, pcb_inset_height/2.0 - 3.0, 0)
+#   ])
+#   .rect(p_strap_width ,3.0)
+#   .extrude(4.0 * p_layer_th, taper=60)
+# )
 
 debug(top)
 
@@ -337,6 +339,6 @@ result = (with_top_holes
 
 #return the combined result
 show_object(result)
-cq.exporters.export(result, "watchy-layers-lugs.stl")
-cq.exporters.export(top, "watchy-layers-lugs-top.stl")
-cq.exporters.export(with_top_holes, "watchy-layers-lugs-body.stl")
+cq.exporters.export(result, "watchy-lugs.stl")
+cq.exporters.export(top, "watchy-lugs-top.stl")
+cq.exporters.export(with_top_holes, "watchy-lugs-body.stl")
